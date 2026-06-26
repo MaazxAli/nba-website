@@ -340,7 +340,8 @@ button:disabled {
 }
 
 .quick-comparisons,
-.mode-panel {
+.mode-panel,
+.scoring-explainer {
   max-width: 980px;
   margin: 24px auto 0;
   padding: 18px;
@@ -447,6 +448,92 @@ button:disabled {
 
 .mode-panel {
   margin-top: 16px;
+}
+
+.scoring-explainer {
+  margin-top: 12px;
+  padding: 0;
+  overflow: hidden;
+}
+
+.scoring-explainer summary {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 18px;
+  cursor: pointer;
+  color: var(--color-text);
+  list-style: none;
+}
+
+.scoring-explainer summary::-webkit-details-marker {
+  display: none;
+}
+
+.scoring-explainer summary span {
+  font-size: 18px;
+  font-weight: 900;
+}
+
+.scoring-explainer summary strong {
+  flex-shrink: 0;
+  padding: 6px 10px;
+  border: 1px solid rgba(96, 165, 250, 0.24);
+  border-radius: 999px;
+  background: rgba(96, 165, 250, 0.1);
+  color: #bfdbfe;
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.scoring-explainer summary::after {
+  content: "+";
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  border: 1px solid #334155;
+  border-radius: 11px;
+  background: rgba(30, 41, 59, 0.82);
+  color: #93c5fd;
+  font-size: 22px;
+  font-weight: 500;
+  line-height: 1;
+  transition: transform 0.16s ease, background 0.16s ease;
+}
+
+.scoring-explainer[open] summary::after {
+  transform: rotate(45deg);
+  background: rgba(96, 165, 250, 0.14);
+}
+
+.scoring-explainer-content {
+  padding: 0 18px 18px;
+  border-top: 1px solid rgba(148, 163, 184, 0.12);
+  color: var(--color-muted);
+}
+
+.scoring-explainer-content p {
+  margin: 14px 0 10px;
+  color: var(--color-text-soft);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.scoring-explainer-content ul {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding-left: 18px;
+}
+
+.scoring-explainer-content li {
+  color: var(--color-muted);
+  font-size: 14px;
+  line-height: 1.45;
 }
 
 .quick-header,
@@ -2224,6 +2311,7 @@ button:disabled {
 :root[data-theme="light"] .season-panel,
 :root[data-theme="light"] .quick-comparisons,
 :root[data-theme="light"] .mode-panel,
+:root[data-theme="light"] .scoring-explainer,
 :root[data-theme="light"] .player-finder-panel,
 :root[data-theme="light"] .multi-compare-panel,
 :root[data-theme="light"] .result-summary,
@@ -2241,6 +2329,7 @@ button:disabled {
 :root[data-theme="light"] .section-heading h2,
 :root[data-theme="light"] .quick-header span,
 :root[data-theme="light"] .mode-header span,
+:root[data-theme="light"] .scoring-explainer summary span,
 :root[data-theme="light"] .season-copy span,
 :root[data-theme="light"] .player-finder-toggle-copy span,
 :root[data-theme="light"] .matchup-chip strong,
@@ -2261,6 +2350,7 @@ button:disabled {
 :root[data-theme="light"] .section-heading p,
 :root[data-theme="light"] .quick-header p,
 :root[data-theme="light"] .mode-header p,
+:root[data-theme="light"] .scoring-explainer-content li,
 :root[data-theme="light"] .season-copy p,
 :root[data-theme="light"] .player-finder-toggle-copy small,
 :root[data-theme="light"] .finder-player-main p,
@@ -2418,7 +2508,8 @@ button:disabled {
 :root[data-theme="light"] .insights-label,
 :root[data-theme="light"] .finder-role-badge,
 :root[data-theme="light"] .multi-role-label,
-:root[data-theme="light"] .sample-size-label {
+:root[data-theme="light"] .sample-size-label,
+:root[data-theme="light"] .scoring-explainer summary strong {
   background: rgba(37, 99, 235, 0.08);
   border-color: rgba(37, 99, 235, 0.2);
   color: #1d4ed8 !important;
@@ -2767,6 +2858,7 @@ button:disabled {
 
   .quick-comparisons,
   .mode-panel,
+  .scoring-explainer,
   .season-panel,
   .player-finder-panel,
   .multi-compare-panel {
@@ -2775,9 +2867,23 @@ button:disabled {
 
   .quick-comparisons,
   .mode-panel,
+  .scoring-explainer,
   .season-panel,
   .multi-compare-panel {
     padding: 14px;
+  }
+
+  .scoring-explainer {
+    padding: 0;
+  }
+
+  .scoring-explainer summary {
+    align-items: flex-start;
+    padding: 14px;
+  }
+
+  .scoring-explainer-content {
+    padding: 0 14px 14px;
   }
 
   .message-box {
