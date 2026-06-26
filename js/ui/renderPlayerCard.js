@@ -113,10 +113,17 @@ export function applyPlayerBranding(player, side, activeMode) {
       : getPlayerArchetype(player);
 }
 
-export function renderPlayerCard(player, otherPlayer, side, statResults, activeMode) {
+export function renderPlayerCard(player, otherPlayer, side, statResults, activeMode, onOpenProfile = null) {
+  const card = document.getElementById(`player${side}Card`);
+  const headerElement = card.querySelector(".player-card-header");
   const nameElement = document.getElementById(`player${side}Name`);
   const metaElement = document.getElementById(`player${side}Meta`);
   const statsElement = document.getElementById(`player${side}Stats`);
+  const previousProfileButton = card.querySelector(".profile-open-button");
+
+  if (previousProfileButton) {
+    previousProfileButton.remove();
+  }
 
   applyPlayerBranding(player, side, activeMode);
 
@@ -128,6 +135,18 @@ export function renderPlayerCard(player, otherPlayer, side, statResults, activeM
     )}`;
   } else {
     metaElement.textContent = `${player.team} • ${player.position} • ${player.season} • ${formatSampleSize(player)} • ${getPlayerStatus(player)}`;
+  }
+
+  if (onOpenProfile) {
+    const profileButton = document.createElement("button");
+
+    profileButton.classList.add("ghost-button", "profile-open-button");
+    profileButton.type = "button";
+    profileButton.textContent = "Profile";
+    profileButton.addEventListener("click", () => {
+      onOpenProfile(player);
+    });
+    headerElement.appendChild(profileButton);
   }
 
   statsElement.innerHTML = "";

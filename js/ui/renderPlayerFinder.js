@@ -109,7 +109,14 @@ export function setPlayerFinderExpanded(elements, isExpanded) {
   playerFinderChevron.textContent = isExpanded ? "×" : "+";
 }
 
-export function renderPlayerFinderResults({ players, elements, onSetPlayerOne, onSetPlayerTwo, onAddToMulti }) {
+export function renderPlayerFinderResults({
+  players,
+  elements,
+  onSetPlayerOne,
+  onSetPlayerTwo,
+  onAddToMulti,
+  onOpenProfile
+}) {
   const { playerFinderCount, playerFinderResults } = elements;
 
   playerFinderCount.textContent =
@@ -152,6 +159,9 @@ export function renderPlayerFinderResults({ players, elements, onSetPlayerOne, o
       <div class="finder-archetype">${canCompare ? getPlayerArchetype(player) : "Unavailable for comparison"}</div>
 
       <div class="finder-actions">
+        <button class="ghost-button finder-action" type="button" data-action="profile">
+          View Profile
+        </button>
         <button class="secondary-button finder-action" type="button" data-action="playerOne">
           Set as Player 1
         </button>
@@ -166,6 +176,9 @@ export function renderPlayerFinderResults({ players, elements, onSetPlayerOne, o
 
     card.querySelector('[data-action="playerOne"]').addEventListener("click", () => {
       onSetPlayerOne(player);
+    });
+    card.querySelector('[data-action="profile"]').addEventListener("click", () => {
+      onOpenProfile(player);
     });
     card.querySelector('[data-action="playerTwo"]').addEventListener("click", () => {
       onSetPlayerTwo(player);

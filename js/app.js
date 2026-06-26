@@ -25,6 +25,10 @@ import {
   setPlayerFinderExpanded,
   setupPlayerFinderFilters
 } from "./ui/renderPlayerFinder.js";
+import {
+  closePlayerProfileModal,
+  openPlayerProfileModal
+} from "./ui/renderPlayerProfileModal.js";
 
 const playerOneInput = document.getElementById("playerOneInput");
 const playerTwoInput = document.getElementById("playerTwoInput");
@@ -97,6 +101,13 @@ const popularComparisonsElement = document.getElementById("popularComparisons");
 const modeButtons = document.querySelectorAll(".mode-button");
 const themeButtons = document.querySelectorAll(".theme-button");
 
+const playerProfileModal = document.getElementById("playerProfileModal");
+const playerProfileTitle = document.getElementById("playerProfileTitle");
+const playerProfileBody = document.getElementById("playerProfileBody");
+const playerProfileCloseBtn = document.getElementById("playerProfileCloseBtn");
+const profileCompareBtn = document.getElementById("profileCompareBtn");
+const profileAddMultiBtn = document.getElementById("profileAddMultiBtn");
+
 const scoreboardElements = {
   playerOneScoreName,
   playerTwoScoreName,
@@ -138,6 +149,15 @@ const playerFinderElements = {
   finderPositionSelect,
   playerFinderCount,
   playerFinderResults
+};
+
+const playerProfileElements = {
+  modal: playerProfileModal,
+  title: playerProfileTitle,
+  body: playerProfileBody,
+  closeButton: playerProfileCloseBtn,
+  compareButton: profileCompareBtn,
+  multiButton: profileAddMultiBtn
 };
 
 const defaultFinderSampleFilters = {
@@ -225,6 +245,7 @@ function handleSeasonChange(seasonKey) {
   multiHasResults = false;
   activeFinderQuickFilter = "";
 
+  closePlayerProfile();
   clearComparison();
   renderMultiPlayerInputs();
   clearMultiCompareResults(multiElements);
@@ -267,6 +288,60 @@ function initializeTheme() {
 
 function getExactPlayer(inputValue) {
   return findExactPlayerByName(activePlayers, inputValue);
+}
+
+function closePlayerProfile() {
+  closePlayerProfileModal(playerProfileElements);
+}
+
+function compareProfilePlayer(player) {
+  setActiveCompareView("headToHead");
+
+  const playerOne = getExactPlayer(playerOneInput.value);
+  const playerTwo = getExactPlayer(playerTwoInput.value);
+
+  if (!playerOne || playerOne.name === player.name) {
+    playerOneInput.value = player.name;
+  } else if (!playerTwo || playerTwo.name === player.name) {
+    playerTwoInput.value = player.name;
+  } else {
+    playerOneInput.value = player.name;
+    playerTwoInput.value = "";
+  }
+
+  renderSelectedPlayerChips();
+  closePlayerProfile();
+
+  const nextPlayerOne = getExactPlayer(playerOneInput.value);
+  const nextPlayerTwo = getExactPlayer(playerTwoInput.value);
+
+  if (nextPlayerOne && nextPlayerTwo && hasPlayerStats(nextPlayerOne) && hasPlayerStats(nextPlayerTwo)) {
+    comparePlayers();
+    return;
+  }
+
+  if (!hasPlayerStats(player)) {
+    showMessage(`${player.name} selected, but this player has no regular-season stats for ${activeSeason}.`, "info");
+    return;
+  }
+
+  showMessage(`${player.name} selected for Head-to-Head. Choose another player to compare.`, "info");
+}
+
+function addProfilePlayerToMulti(player) {
+  addFinderPlayerToMultiCompare(player);
+  closePlayerProfile();
+}
+
+function openPlayerProfile(player) {
+  openPlayerProfileModal({
+    player,
+    activeMode,
+    statConfig,
+    elements: playerProfileElements,
+    onComparePlayer: compareProfilePlayer,
+    onAddToMulti: addProfilePlayerToMulti
+  });
 }
 
 function showMessage(message, type = "error") {
@@ -726,7 +801,8 @@ function compareMultiPlayers() {
     rows,
     stats,
     activeMode,
-    elements: multiElements
+    elements: multiElements,
+    onOpenProfile: openPlayerProfile
   });
 
   multiHasResults = true;
@@ -794,7 +870,8 @@ function updatePlayerFinderResults() {
     elements: playerFinderElements,
     onSetPlayerOne: setFinderPlayerOne,
     onSetPlayerTwo: setFinderPlayerTwo,
-    onAddToMulti: addFinderPlayerToMultiCompare
+    onAddToMulti: addFinderPlayerToMultiCompare,
+    onOpenProfile: openPlayerProfile
   });
 }
 
@@ -1017,8 +1094,8 @@ function comparePlayers() {
         }
       : null;
 
-  renderPlayerCard(playerOne, playerTwo, "One", statResults, activeMode);
-  renderPlayerCard(playerTwo, playerOne, "Two", statResults, activeMode);
+  renderPlayerCard(playerOne, playerTwo, "One", statResults, activeMode, openPlayerProfile);
+  renderPlayerCard(playerTwo, playerOne, "Two", statResults, activeMode, openPlayerProfile);
   updateScoreboard({
     playerOne,
     playerTwo,
@@ -1123,6 +1200,11 @@ function resetCard(side) {
   const avatar = document.getElementById(`player${side}Avatar`);
   const archetype = document.getElementById(`player${side}Archetype`);
   const stats = document.getElementById(`player${side}Stats`);
+  const profileButton = card.querySelector(".profile-open-button");
+
+  if (profileButton) {
+    profileButton.remove();
+  }
 
   card.classList.add("empty-card");
   card.style.removeProperty("--card-primary");
@@ -1294,6 +1376,18 @@ themeButtons.forEach((button) => {
   button.addEventListener("click", () => {
     applyTheme(button.dataset.themeOption);
   });
+});
+
+playerProfileModal.addEventListener("click", (event) => {
+  if (event.target.dataset.profileClose !== undefined) {
+    closePlayerProfile();
+  }
+});
+
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape" && !playerProfileModal.classList.contains("hidden")) {
+    closePlayerProfile();
+  }
 });
 
 seasonSelect.addEventListener("change", () => {

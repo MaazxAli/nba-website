@@ -65,7 +65,7 @@ export function clearMultiCompareResults(elements) {
   multiTableBody.innerHTML = "";
 }
 
-export function renderMultiCompareResults({ rows, stats, activeMode, elements }) {
+export function renderMultiCompareResults({ rows, stats, activeMode, elements, onOpenProfile = null }) {
   const { multiResults, multiRankingSummary, multiTableHead, multiTableBody } = elements;
 
   multiResults.classList.remove("hidden");
@@ -92,7 +92,9 @@ export function renderMultiCompareResults({ rows, stats, activeMode, elements })
         <span>${index + 1}</span>
       </td>
       <td class="multi-player-cell">
-        <strong>${row.player.name}</strong>
+        <button class="multi-profile-link" type="button" data-player-name="${row.player.name}">
+          ${row.player.name}
+        </button>
         <small>${getOverallLabel(activeMode)}: ${getOverallValue(row, activeMode)}</small>
       </td>
       <td class="multi-team-cell">
@@ -112,4 +114,18 @@ export function renderMultiCompareResults({ rows, stats, activeMode, elements })
 
     multiTableBody.appendChild(tableRow);
   });
+
+  if (onOpenProfile) {
+    multiTableBody.querySelectorAll(".multi-profile-link").forEach((button) => {
+      const player = rows.find((row) => row.player.name === button.dataset.playerName)?.player;
+
+      if (!player) {
+        return;
+      }
+
+      button.addEventListener("click", () => {
+        onOpenProfile(player);
+      });
+    });
+  }
 }
