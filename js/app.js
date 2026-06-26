@@ -221,7 +221,9 @@ function refreshSeasonDependentViews() {
     },
     playerOneInput,
     playerTwoInput,
-    comparePlayers
+    comparePlayers: () => {
+      comparePlayers({ scrollToResults: true });
+    }
   });
   updateSeasonStatus();
 }
@@ -294,6 +296,27 @@ function closePlayerProfile() {
   closePlayerProfileModal(playerProfileElements);
 }
 
+function scrollToResultsArea(element) {
+  if (!element) {
+    return;
+  }
+
+  requestAnimationFrame(() => {
+    element.scrollIntoView({
+      behavior: "smooth",
+      block: "start"
+    });
+  });
+}
+
+function scrollToHeadToHeadResults() {
+  scrollToResultsArea(resultSummary);
+}
+
+function scrollToMultiCompareResults() {
+  scrollToResultsArea(multiResults);
+}
+
 function compareProfilePlayer(player) {
   setActiveCompareView("headToHead");
 
@@ -316,7 +339,7 @@ function compareProfilePlayer(player) {
   const nextPlayerTwo = getExactPlayer(playerTwoInput.value);
 
   if (nextPlayerOne && nextPlayerTwo && hasPlayerStats(nextPlayerOne) && hasPlayerStats(nextPlayerTwo)) {
-    comparePlayers();
+    comparePlayers({ scrollToResults: true });
     return;
   }
 
@@ -443,7 +466,7 @@ function handleSearchEnter(event, input, suggestionsBox, nextInput) {
     const playerTwo = getExactPlayer(playerTwoInput.value);
 
     if (playerOne && playerTwo) {
-      comparePlayers();
+      comparePlayers({ scrollToResults: true });
     } else if (nextInput) {
       nextInput.focus();
     }
@@ -463,14 +486,14 @@ function handleSearchEnter(event, input, suggestionsBox, nextInput) {
       const playerTwo = getExactPlayer(playerTwoInput.value);
 
       if (playerOne && playerTwo) {
-        comparePlayers();
+        comparePlayers({ scrollToResults: true });
       }
     }
 
     return;
   }
 
-  comparePlayers();
+  comparePlayers({ scrollToResults: true });
 }
 
 function createSelectedChip(label, player, onRemove) {
@@ -703,7 +726,7 @@ function handleMultiSearchEnter(event, index, input, suggestionsBox) {
     if (matches.length > 0) {
       selectMultiPlayer(index, input, suggestionsBox, matches[0]);
     } else {
-      compareMultiPlayers();
+      compareMultiPlayers({ scrollToResults: true });
       return;
     }
   }
@@ -715,7 +738,7 @@ function handleMultiSearchEnter(event, index, input, suggestionsBox) {
     return;
   }
 
-  compareMultiPlayers();
+  compareMultiPlayers({ scrollToResults: true });
 }
 
 function getValidatedMultiPlayers() {
@@ -787,7 +810,7 @@ function hasValidMultiSelection() {
   return playersByName.length >= 3 && uniqueNames.size === playersByName.length;
 }
 
-function compareMultiPlayers() {
+function compareMultiPlayers(options = {}) {
   const selectedPlayers = getValidatedMultiPlayers();
 
   if (!selectedPlayers) {
@@ -810,6 +833,10 @@ function compareMultiPlayers() {
   statNote.textContent = comparisonModes[activeMode].note;
   clearMessage();
   hideMultiSuggestions();
+
+  if (options.scrollToResults) {
+    scrollToMultiCompareResults();
+  }
 }
 
 function clearMultiComparison() {
@@ -1038,7 +1065,7 @@ function showNoStatsMessage(player) {
   showMessage(`${player.name} has no regular-season stats for ${activeSeason}. Choose a player with available stats to compare.`);
 }
 
-function comparePlayers() {
+function comparePlayers(options = {}) {
   const playerOneResult = findPlayer(activePlayers, playerOneInput.value);
   const playerTwoResult = findPlayer(activePlayers, playerTwoInput.value);
 
@@ -1178,6 +1205,10 @@ function comparePlayers() {
 
   hideSuggestions(playerOneSuggestions);
   hideSuggestions(playerTwoSuggestions);
+
+  if (options.scrollToResults) {
+    scrollToHeadToHeadResults();
+  }
 }
 
 function swapPlayers() {
@@ -1436,7 +1467,9 @@ finderQuickButtons.forEach((button) => {
 
 resetFinderFiltersBtn.addEventListener("click", resetPlayerFinderFilters);
 
-compareBtn.addEventListener("click", comparePlayers);
+compareBtn.addEventListener("click", () => {
+  comparePlayers({ scrollToResults: true });
+});
 swapBtn.addEventListener("click", swapPlayers);
 clearBtn.addEventListener("click", clearComparison);
 addMultiPlayerBtn.addEventListener("click", () => {
@@ -1455,7 +1488,9 @@ addMultiPlayerBtn.addEventListener("click", () => {
     lastInput.focus();
   }
 });
-compareMultiBtn.addEventListener("click", compareMultiPlayers);
+compareMultiBtn.addEventListener("click", () => {
+  compareMultiPlayers({ scrollToResults: true });
+});
 clearMultiBtn.addEventListener("click", clearMultiComparison);
 
 insightsToggle.addEventListener("click", () => {

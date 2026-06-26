@@ -1,4 +1,9 @@
 import { teamStyles } from "../config/teams.js";
+import {
+  advancedStatDefinitions,
+  formatAdvancedStatValue,
+  getAdvancedStatValue
+} from "../lib/advancedStats.js";
 import { formatValue, getInitials, getRoleLabel } from "../lib/format.js";
 import { formatSampleSize, getPlayerStatus, hasPlayerStats } from "../lib/playerDataQuality.js";
 import { getPrimaryRole, getStatClass } from "../lib/scoring.js";
@@ -41,20 +46,53 @@ function getBarWidth(player, otherPlayer, stat, statResult = null, activeMode) {
   return Math.max(18, (playerValue / maxValue) * 100);
 }
 
+function getAdvancedStatResult(player, otherPlayer, stat) {
+  const playerValue = getAdvancedStatValue(player, stat.key);
+  const otherValue = getAdvancedStatValue(otherPlayer, stat.key);
+
+  if (playerValue === null || otherValue === null || playerValue === otherValue) {
+    return 0;
+  }
+
+  return playerValue > otherValue ? 1 : 2;
+}
+
+function getAdvancedBarWidth(playerValue, otherValue) {
+  if (playerValue === null || otherValue === null) {
+    return 18;
+  }
+
+  if (playerValue === otherValue) {
+    return 80;
+  }
+
+  const maxValue = Math.max(playerValue, otherValue);
+
+  if (maxValue <= 0) {
+    return 18;
+  }
+
+  return Math.max(18, (playerValue / maxValue) * 100);
+}
+
 const statGroups = [
   {
+    id: "scoring",
     label: "Scoring",
     statKeys: ["points"]
   },
   {
+    id: "playmaking",
     label: "Playmaking",
     statKeys: ["assists", "turnovers"]
   },
   {
+    id: "defense",
     label: "Defense / Rebounding",
     statKeys: ["rebounds", "steals", "blocks"]
   },
   {
+    id: "efficiency",
     label: "Efficiency",
     statKeys: ["fgPercent", "threePercent", "ftPercent"]
   }
@@ -168,7 +206,7 @@ export function renderPlayerCard(player, otherPlayer, side, statResults, activeM
     }
 
     const section = document.createElement("section");
-    section.classList.add("stat-section");
+    section.classList.add("stat-section", `stat-section-${group.id}`);
 
     const header = document.createElement("h4");
     header.classList.add("stat-section-title");
@@ -215,4 +253,45 @@ export function renderPlayerCard(player, otherPlayer, side, statResults, activeM
     section.appendChild(rows);
     statsElement.appendChild(section);
   });
+
+  const advancedSection = document.createElement("details");
+  advancedSection.classList.add("stat-section", "advanced-stat-section");
+
+  const advancedHeader = document.createElement("summary");
+  advancedHeader.classList.add("stat-section-title", "advanced-stat-summary");
+  advancedHeader.innerHTML = `
+    <span>Advanced stats</span>
+    <span class="accordion-icon-button" aria-hidden="true"></span>
+  `;
+  advancedSection.appendChild(advancedHeader);
+
+  const advancedRows = document.createElement("div");
+  advancedRows.classList.add("stat-section-rows");
+
+  advancedStatDefinitions.forEach((stat) => {
+    const playerValue = getAdvancedStatValue(player, stat.key);
+    const otherValue = getAdvancedStatValue(otherPlayer, stat.key);
+    const result = getAdvancedStatResult(player, otherPlayer, stat);
+    const playerSide = side === "One" ? 1 : 2;
+    const statClass = getStatClass(playerSide, result);
+    const barWidth = getAdvancedBarWidth(playerValue, otherValue);
+    const statRow = document.createElement("div");
+
+    statRow.classList.add("stat-row", statClass);
+    statRow.innerHTML = `
+      <div class="stat-line">
+        <span>${stat.label}</span>
+        <strong>${formatAdvancedStatValue(playerValue, stat.suffix)}</strong>
+      </div>
+
+      <div class="bar-track">
+        <div class="bar-fill ${statClass}" style="width: ${barWidth}%"></div>
+      </div>
+    `;
+
+    advancedRows.appendChild(statRow);
+  });
+
+  advancedSection.appendChild(advancedRows);
+  statsElement.appendChild(advancedSection);
 }

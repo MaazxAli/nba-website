@@ -1,4 +1,5 @@
 import { comparisonModes } from "../config/modes.js";
+import { getAdvancedStatRows } from "../lib/advancedStats.js";
 import { formatValue, getInitials, getRoleLabel } from "../lib/format.js";
 import { formatSampleSize, getPlayerStatus, hasPlayerStats } from "../lib/playerDataQuality.js";
 import {
@@ -66,6 +67,7 @@ export function openPlayerProfileModal({
   const canCompare = hasPlayerStats(player);
   const role = getPrimaryRole(player);
   const lensLabel = comparisonModes[activeMode]?.label || "Current Lens";
+  const advancedStats = getAdvancedStatRows(player);
 
   title.textContent = `${player.name} profile`;
   body.innerHTML = `
@@ -112,6 +114,22 @@ export function openPlayerProfileModal({
       <h4>Shooting Splits</h4>
       <div class="profile-stat-grid">
         ${shootingStats.map((stat) => getStatTileContent(player, stat)).join("")}
+      </div>
+    </section>
+
+    <section class="profile-section">
+      <h4>Advanced Stats</h4>
+      <div class="profile-stat-grid">
+        ${advancedStats
+          .map((stat) => {
+            return `
+              <div class="profile-stat-tile" title="${stat.description}">
+                <span>${stat.label}</span>
+                <strong>${stat.formattedValue}</strong>
+              </div>
+            `;
+          })
+          .join("")}
       </div>
     </section>
   `;

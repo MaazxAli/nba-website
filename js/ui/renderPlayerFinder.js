@@ -106,7 +106,7 @@ export function setPlayerFinderExpanded(elements, isExpanded) {
   playerFinderToggle.setAttribute("aria-expanded", String(isExpanded));
   playerFinderContent.classList.toggle("hidden", !isExpanded);
   playerFinderPanel.classList.toggle("expanded", isExpanded);
-  playerFinderChevron.textContent = isExpanded ? "×" : "+";
+  playerFinderChevron.textContent = "";
 }
 
 export function renderPlayerFinderResults({

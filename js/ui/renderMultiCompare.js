@@ -16,16 +16,22 @@ function getOverallValue(row, activeMode) {
   return formatScore(row.categoryWins);
 }
 
-function getTeamPositionContent(row, activeMode) {
+function getIdentityContent(row, index, activeMode) {
   const roleText =
     activeMode === "position"
       ? `<small class="multi-role-label">${getRoleLabel(row.role)}</small>`
       : "";
 
   return `
-    <span>${row.player.team}</span>
-    <small>${row.player.position} • ${row.player.season}</small>
-    ${roleText}
+    <span class="multi-identity-rank">${index + 1}</span>
+    <span class="multi-identity-copy">
+      <button class="multi-profile-link" type="button" data-player-name="${row.player.name}">
+        ${row.player.name}
+      </button>
+      <small>${row.player.team} • ${row.player.position} • ${row.player.season}</small>
+      <small>${getOverallLabel(activeMode)}: ${getOverallValue(row, activeMode)}</small>
+      ${roleText}
+    </span>
   `;
 }
 
@@ -74,9 +80,7 @@ export function renderMultiCompareResults({ rows, stats, activeMode, elements, o
 
   multiTableHead.innerHTML = `
     <tr>
-      <th>Rank</th>
       <th>Player</th>
-      <th>Team/Position</th>
       ${stats.map((stat) => `<th>${stat.label}</th>`).join("")}
       <th>${getOverallLabel(activeMode)}</th>
     </tr>
@@ -88,17 +92,10 @@ export function renderMultiCompareResults({ rows, stats, activeMode, elements, o
     const tableRow = document.createElement("tr");
 
     tableRow.innerHTML = `
-      <td class="multi-rank-cell">
-        <span>${index + 1}</span>
-      </td>
-      <td class="multi-player-cell">
-        <button class="multi-profile-link" type="button" data-player-name="${row.player.name}">
-          ${row.player.name}
-        </button>
-        <small>${getOverallLabel(activeMode)}: ${getOverallValue(row, activeMode)}</small>
-      </td>
-      <td class="multi-team-cell">
-        ${getTeamPositionContent(row, activeMode)}
+      <td class="multi-identity-cell">
+        <div class="multi-identity-content">
+          ${getIdentityContent(row, index, activeMode)}
+        </div>
       </td>
       ${row.statCells
         .map((cell) => {

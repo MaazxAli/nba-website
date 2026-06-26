@@ -31,6 +31,10 @@ Every player object must include:
 | `season` | string | Season label. Must match the season key. |
 | `gamesPlayed` | number | Games played in the selected regular season. Optional for older sample data. |
 | `minutes` | number or null | Minutes per game. Use `null` when the player has no regular-season stats. Optional for older sample data. |
+| `fieldGoalsMade` | number or null | Field goals made per game. Used for eFG%. Optional for older generated data. |
+| `fieldGoalAttempts` | number or null | Field goal attempts per game. Used for TS% and eFG%. Optional for older generated data. |
+| `threePointersMade` | number or null | Three-pointers made per game. Used for eFG%. Optional for older generated data. |
+| `freeThrowAttempts` | number or null | Free throw attempts per game. Used for TS%. Optional for older generated data. |
 | `points` | number | Points per game. |
 | `rebounds` | number | Rebounds per game. |
 | `assists` | number | Assists per game. |
@@ -51,6 +55,7 @@ Every player object must include:
 - Do not use `null`, `undefined`, empty strings, or formatted strings for numeric stats.
 - `gamesPlayed` should be a number when present.
 - `minutes` should be a number or `null` when present.
+- `fieldGoalsMade`, `fieldGoalAttempts`, `threePointersMade`, and `freeThrowAttempts` should be numbers or `null` when present.
 - `hasStats` should be a boolean when present.
 - `status` should be a string when present.
 - For `hasStats: true`, all stat fields should be numeric.
@@ -76,6 +81,10 @@ Every player object must include:
   season: "2023-24",
   gamesPlayed: 74,
   minutes: 32.7,
+  fieldGoalsMade: 8.8,
+  fieldGoalAttempts: 19.5,
+  threePointersMade: 4.8,
+  freeThrowAttempts: 4.4,
   points: 26.4,
   rebounds: 4.5,
   assists: 5.1,
@@ -192,6 +201,7 @@ The script:
 - Pulls regular-season per-game data with `nba_api`.
 - Joins NBA player index data for position and team display names.
 - Includes `gamesPlayed`, `minutes`, `hasStats`, and `status` in newly generated files.
+- Includes raw shooting volume fields needed for TS% and eFG% in newly generated files.
 - Adds searchable no-stats players from the season/player index when they are absent from the regular-season per-game stat response.
 - Converts NBA percentage decimals such as `0.408` into schema percentages such as `40.8`.
 - Validates the generated players before writing the output file.

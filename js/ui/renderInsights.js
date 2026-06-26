@@ -8,7 +8,7 @@ export function setInsightsExpanded(elements, isExpanded) {
   insightsToggle.setAttribute("aria-expanded", String(isExpanded));
   insightsContent.classList.toggle("hidden", !isExpanded);
   insightsPanel.classList.toggle("expanded", isExpanded);
-  insightsChevron.textContent = isExpanded ? "×" : "+";
+  insightsChevron.textContent = "";
 }
 
 export function getPlayerStrengths(statResults, playerNumber) {
