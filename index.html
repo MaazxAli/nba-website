@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NBA Compare</title>
+  <script>
+    (() => {
+      try {
+        const savedTheme = localStorage.getItem("nbaCompareTheme");
+        document.documentElement.dataset.theme = savedTheme === "light" ? "light" : "dark";
+      } catch (error) {
+        document.documentElement.dataset.theme = "dark";
+      }
+    })();
+  </script>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <header class="site-hero">
+    <div class="hero-topbar">
+      <div class="hero-badge">NBA Player Comparison</div>
+
+      <div class="theme-toggle" role="group" aria-label="Theme">
+        <button class="theme-button active" type="button" data-theme-option="dark" aria-pressed="true">
+          Dark
+        </button>
+        <button class="theme-button" type="button" data-theme-option="light" aria-pressed="false">
+          Light
+        </button>
+      </div>
+    </div>
+
+    <h1>NBA Compare</h1>
+    <p>Search, compare, and quickly see where each player has the edge.</p>
+  </header>
+
+  <main>
+    <section class="comparison-panel">
+      <div class="section-heading">
+        <h2>Player Comparison Tool</h2>
+        <p>Search two players and compare their stats side by side.</p>
+      </div>
+
+      <div class="compare-type-toggle" role="tablist" aria-label="Comparison type">
+        <button 
+          class="compare-type-button active" 
+          type="button" 
+          data-compare-view="headToHead"
+          aria-selected="true"
+        >
+          Head-to-Head
+        </button>
+
+        <button 
+          class="compare-type-button" 
+          type="button" 
+          data-compare-view="multi"
+          aria-selected="false"
+        >
+          Multi-Compare
+        </button>
+      </div>
+
+      <div class="season-panel" aria-label="Season selector">
+        <div class="season-copy">
+          <span>Season</span>
+          <p id="seasonStatus">Current dataset: 2023-24 NBA season</p>
+        </div>
+
+        <label class="season-select-wrap">
+          <span class="sr-only">Select season</span>
+          <select id="seasonSelect"></select>
+        </label>
+      </div>
+
+      <div id="headToHeadView" class="comparison-view">
+        <div class="controls">
+          <div class="search-wrapper">
+            <input 
+              id="playerOneInput"
+              type="text"
+              placeholder="Search Player 1"
+              autocomplete="off"
+            />
+            <div id="playerOneSuggestions" class="suggestions"></div>
+          </div>
+
+          <div class="search-wrapper">
+            <input 
+              id="playerTwoInput"
+              type="text"
+              placeholder="Search Player 2"
+              autocomplete="off"
+            />
+            <div id="playerTwoSuggestions" class="suggestions"></div>
+          </div>
+
+          <div class="button-group">
+            <button id="compareBtn" type="button">Compare</button>
+            <button id="swapBtn" class="secondary-button" type="button">Swap</button>
+            <button id="clearBtn" class="ghost-button" type="button">Clear</button>
+          </div>
+        </div>
+
+        <div id="headToHeadSelectedChips" class="selected-player-strip" aria-live="polite"></div>
+
+        <div class="quick-comparisons">
+          <div class="quick-header">
+            <span>Popular Matchups</span>
+            <p>Jump straight into classic, trending, and debate-worthy comparisons.</p>
+          </div>
+
+          <div id="popularComparisons" class="quick-list"></div>
+        </div>
+      </div>
+
+      <div id="multiCompareView" class="comparison-view multi-compare-view hidden">
+        <div class="multi-compare-panel">
+          <div id="multiPlayerInputs" class="multi-player-inputs"></div>
+          <div id="multiSelectedChips" class="selected-player-strip multi-selected-strip" aria-live="polite"></div>
+
+          <div class="button-group multi-button-group">
+            <button id="addMultiPlayerBtn" class="secondary-button" type="button">Add Player</button>
+            <button id="compareMultiBtn" type="button">Compare Players</button>
+            <button id="clearMultiBtn" class="ghost-button" type="button">Clear</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="mode-panel">
+        <div class="mode-header">
+          <div class="mode-title-row">
+            <span>Comparison Lens</span>
+
+            <button 
+              class="info-icon"
+              type="button"
+              aria-label="What is a comparison lens?"
+              data-tooltip="A lens changes how the comparison is judged. For example, Shooting focuses on shooting stats, Defense focuses on defensive stats, and Position Adjusted weighs players by role."
+            >
+              i
+            </button>
+          </div>
+
+          <p>Choose how the matchup should be judged. Position Adjusted weighs players by role.</p>
+        </div>
+
+        <div class="mode-list">
+          <button 
+            class="mode-button active" 
+            type="button" 
+            data-mode="all"
+            data-tooltip="Uses every available stat equally: scoring, rebounding, assists, defense, turnovers, and shooting percentages."
+          >
+            All Stats
+          </button>
+
+          <button 
+            class="mode-button" 
+            type="button" 
+            data-mode="position"
+            data-tooltip="Adjusts the comparison based on player role. Guards, wings, and bigs are judged with different stat expectations."
+          >
+            Position Adjusted
+          </button>
+
+          <button 
+            class="mode-button" 
+            type="button" 
+            data-mode="scoring"
+            data-tooltip="Focuses on scoring impact: points, shooting efficiency, free throws, and turnovers."
+          >
+            Scoring
+          </button>
+
+          <button 
+            class="mode-button" 
+            type="button" 
+            data-mode="shooting"
+            data-tooltip="Focuses only on shooting percentages: FG%, 3P%, and FT%."
+          >
+            Shooting
+          </button>
+
+          <button 
+            class="mode-button" 
+            type="button" 
+            data-mode="playmaking"
+            data-tooltip="Focuses on creating offense: assists, scoring pressure, and ball security."
+          >
+            Playmaking
+          </button>
+
+          <button 
+            class="mode-button" 
+            type="button" 
+            data-mode="defense"
+            data-tooltip="Focuses on defensive box-score impact: rebounds, steals, and blocks."
+          >
+            Defense
+          </button>
+
+          <button 
+            class="mode-button" 
+            type="button" 
+            data-mode="efficiency"
+            data-tooltip="Focuses on clean offensive play: FG%, 3P%, FT%, and lower turnovers."
+          >
+            Efficiency
+          </button>
+        </div>
+      </div>
+
+      <div id="playerFinderPanel" class="player-finder-panel">
+        <button 
+          id="playerFinderToggle" 
+          class="player-finder-toggle" 
+          type="button"
+          aria-expanded="false"
+          aria-controls="playerFinderContent"
+        >
+          <span class="player-finder-toggle-copy">
+            <span>Player Finder</span>
+            <small>Filter the roster and send players into either comparison mode.</small>
+          </span>
+
+          <span id="playerFinderChevron" class="player-finder-chevron">+</span>
+        </button>
+
+        <div id="playerFinderContent" class="player-finder-content hidden">
+          <div class="finder-controls">
+            <label class="finder-field">
+              <span>Search</span>
+              <input 
+                id="finderSearchInput"
+                type="text"
+                placeholder="Name, team, or position"
+                autocomplete="off"
+              />
+            </label>
+
+            <label class="finder-field">
+              <span>Team</span>
+              <select id="finderTeamSelect"></select>
+            </label>
+
+            <label class="finder-field">
+              <span>Position</span>
+              <select id="finderPositionSelect"></select>
+            </label>
+
+            <label class="finder-field">
+              <span>Role</span>
+              <select id="finderRoleSelect">
+                <option value="">All roles</option>
+                <option value="guard">Guard</option>
+                <option value="wing">Wing</option>
+                <option value="big">Big</option>
+              </select>
+            </label>
+
+            <label class="finder-field">
+              <span>Min GP</span>
+              <input
+                id="finderMinGamesInput"
+                type="number"
+                min="0"
+                step="1"
+                value="10"
+                inputmode="numeric"
+              />
+            </label>
+
+            <label class="finder-field">
+              <span>Min MPG</span>
+              <input
+                id="finderMinMinutesInput"
+                type="number"
+                min="0"
+                step="1"
+                value="10"
+                inputmode="decimal"
+              />
+            </label>
+
+            <label class="finder-checkbox-field">
+              <input id="finderIncludeNoStatsInput" type="checkbox" />
+              <span>Show no-stats players</span>
+            </label>
+
+            <button id="resetFinderFiltersBtn" class="ghost-button finder-reset" type="button">
+              Reset Filters
+            </button>
+          </div>
+
+          <div class="finder-quick-filters" aria-label="Quick player filters">
+            <button class="finder-filter-chip active" type="button" data-finder-filter="">
+              All
+            </button>
+            <button class="finder-filter-chip" type="button" data-finder-filter="guard">
+              Guards
+            </button>
+            <button class="finder-filter-chip" type="button" data-finder-filter="wing">
+              Wings
+            </button>
+            <button class="finder-filter-chip" type="button" data-finder-filter="big">
+              Bigs
+            </button>
+            <button class="finder-filter-chip" type="button" data-finder-filter="shooters">
+              Shooters
+            </button>
+            <button class="finder-filter-chip" type="button" data-finder-filter="playmakers">
+              Playmakers
+            </button>
+            <button class="finder-filter-chip" type="button" data-finder-filter="defenders">
+              Defenders
+            </button>
+          </div>
+
+          <div id="playerFinderCount" class="player-finder-count"></div>
+          <div id="playerFinderResults" class="player-finder-results"></div>
+        </div>
+      </div>
+
+      <div id="messageBox" class="message-box hidden"></div>
+
+      <div id="headToHeadResults" class="comparison-results">
+        <div id="resultSummary" class="result-summary">
+          Search two players to begin.
+        </div>
+
+        <div class="scoreboard">
+          <div class="score-card">
+            <span id="playerOneScoreName" class="score-label">Player 1</span>
+            <strong id="playerOneScore">0</strong>
+            <span id="playerOneScoreCaption">category wins</span>
+          </div>
+
+          <div class="score-card tie-card">
+            <span id="middleScoreLabel" class="score-label">Tied</span>
+            <strong id="tieScore">0</strong>
+            <span id="middleScoreCaption">categories</span>
+          </div>
+
+          <div class="score-card">
+            <span id="playerTwoScoreName" class="score-label">Player 2</span>
+            <strong id="playerTwoScore">0</strong>
+            <span id="playerTwoScoreCaption">category wins</span>
+          </div>
+        </div>
+
+        <div id="insightsPanel" class="insights-panel hidden">
+          <button 
+            id="insightsToggle" 
+            class="insights-toggle" 
+            type="button"
+            aria-expanded="false"
+            aria-controls="insightsContent"
+          >
+            <span class="insights-toggle-copy">
+              <span class="insights-label">Advanced Breakdown</span>
+              <span id="overallEdgeText" class="insights-title">Smart Insights</span>
+              <span id="styleTakeaway" class="insights-preview">
+                Compare two players to unlock a deeper stat breakdown.
+              </span>
+            </span>
+
+            <span id="insightsChevron" class="insights-chevron">+</span>
+          </button>
+
+          <div id="insightsContent" class="insights-content hidden">
+            <div class="insight-grid">
+              <div class="insight-card">
+                <h4>Biggest Advantages</h4>
+                <ul id="advantageList"></ul>
+              </div>
+
+              <div class="insight-card">
+                <h4>Player Profiles</h4>
+                <p id="profileInsight"></p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="compare-box">
+          <div id="playerOneCard" class="player-card empty-card">
+            <div class="player-card-header">
+              <div class="player-main-info">
+                <div id="playerOneAvatar" class="player-avatar">P1</div>
+
+                <div>
+                  <h3 id="playerOneName">Player 1</h3>
+                  <p id="playerOneMeta" class="player-meta">Team • Position • Season</p>
+                  <span id="playerOneArchetype" class="archetype-badge">Choose a player</span>
+                </div>
+              </div>
+
+              <span id="playerOneBadge" class="player-badge">Waiting</span>
+            </div>
+
+            <div id="playerOneStats" class="stats-list empty-state">
+              <p>Search a player to see their profile, strengths, and stat comparison.</p>
+            </div>
+          </div>
+
+          <div id="playerTwoCard" class="player-card empty-card">
+            <div class="player-card-header">
+              <div class="player-main-info">
+                <div id="playerTwoAvatar" class="player-avatar">P2</div>
+
+                <div>
+                  <h3 id="playerTwoName">Player 2</h3>
+                  <p id="playerTwoMeta" class="player-meta">Team • Position • Season</p>
+                  <span id="playerTwoArchetype" class="archetype-badge">Choose a player</span>
+                </div>
+              </div>
+
+              <span id="playerTwoBadge" class="player-badge">Waiting</span>
+            </div>
+
+            <div id="playerTwoStats" class="stats-list empty-state">
+              <p>Search a second player to compare strengths side by side.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="multiEmptyState" class="multi-empty-state hidden">
+        <strong>Build a 3-4 player board</strong>
+        <span>Add players from search or Player Finder, then compare them across the active lens.</span>
+      </div>
+
+      <div id="multiResults" class="multi-results hidden">
+        <div id="multiRankingSummary" class="multi-ranking-summary"></div>
+
+        <div class="multi-table-wrap">
+          <div class="multi-scroll-hint">Scroll horizontally to inspect every stat</div>
+          <table class="multi-table">
+            <thead id="multiTableHead"></thead>
+            <tbody id="multiTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <p id="statNote" class="stat-note">
+        Green = better stat. Grey = weaker stat. For turnovers, lower is better.
+      </p>
+    </section>
+  </main>
+
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
